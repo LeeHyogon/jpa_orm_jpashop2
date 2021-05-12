@@ -6,14 +6,15 @@ spring:
     driver-class-name: org.h2.Driver
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: create
   properties:
     hibernate:
-      # show_sql: true
+      #show_sql: true
       format_sql: true
 logging.level:
   org.hibernate.SQL: debug
-  org.hibernate.type: trace
+  #org.hibernate.type: trace
+
 server:
   error:
     include-exception: true # 오류 응답에 exception의 내용을 포함할지 여부 include-stacktrace: always # 오류 응답에 stacktrace 내용을 포함할 지 여부
