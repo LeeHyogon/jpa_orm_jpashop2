@@ -5,8 +5,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.handler.SimpleServletHandlerAdapter;
 
 import javax.persistence.*;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,20 +26,20 @@ public class Order {
 
     @Id
     @GeneratedValue
-    @Column(name="order_id")
+    @Column(name = "order_id")
     private Long id;
 
-    @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name="member_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
     private Member member;
 
-    @OneToMany(mappedBy="order",cascade=CascadeType.ALL)
-    private List<OrderItem> orderItems=new ArrayList<>();
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    private List<OrderItem> orderItems = new ArrayList<>();
 
     //딜리버리에서 오더를 찾을일 별로없음.
     //오더를 거쳐서 딜리버릴많이 보기때문에 오더에 포린키뒀음.
-    @OneToOne(fetch = FetchType.LAZY,cascade=CascadeType.ALL)
-    @JoinColumn(name="delivery_id")
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "delivery_id")
     private Delivery delivery;
 
     private LocalDateTime orderDate; //주문시간
@@ -42,26 +48,27 @@ public class Order {
     private OrderStatus status; //주문상태 [ORDER,CANCEL]
 
     //==연관관계 편의 메서드 ==//
-    public void setMember(Member member){
-        this.member=member;
+    public void setMember(Member member) {
+        this.member = member;
         member.getOrders().add(this);
     }
 
-    public void addOrderItem(OrderItem orderItem){
+    public void addOrderItem(OrderItem orderItem) {
         orderItems.add(orderItem);
         orderItem.setOrder(this);
     }
-    public void setDelivery(Delivery delivery){
-        this.delivery=delivery;
+
+    public void setDelivery(Delivery delivery) {
+        this.delivery = delivery;
         delivery.setOrder(this);
     }
 
     //== 생성 메서드 =/
-    public static Order createOrder(Member member,Delivery delivery,OrderItem... orderItems){
+    public static Order createOrder(Member member, Delivery delivery, OrderItem... orderItems) {
         Order order = new Order();
         order.setMember(member);
         order.setDelivery(delivery);
-        for(OrderItem orderItem: orderItems){
+        for (OrderItem orderItem : orderItems) {
             order.addOrderItem(orderItem);
         }
         order.setStatus(OrderStatus.ORDER);
@@ -73,12 +80,12 @@ public class Order {
     /*
      * 주문 취소
      */
-    public void cancel(){
-        if(delivery.getStatus()==DeliveryStatus.COMP){
+    public void cancel() {
+        if (delivery.getStatus() == DeliveryStatus.COMP) {
             throw new IllegalStateException("이미 배송 완료된 상품은 취소가 불가능하쥬");
         }
         this.setStatus(OrderStatus.CANCEL);
-        for(OrderItem orderItem: orderItems){
+        for (OrderItem orderItem : orderItems) {
             orderItem.cancel();
         }
     }
@@ -87,14 +94,13 @@ public class Order {
     /*
      * 전체 주문 가격 조회
      */
-    public int getTotalPrice(){
-        int totalPrice=0;
-        for(OrderItem orderItem : orderItems){
-            totalPrice+=orderItem.getTotalPrice();
+    public int getTotalPrice() {
+        int totalPrice = 0;
+        for (OrderItem orderItem : orderItems) {
+            totalPrice += orderItem.getTotalPrice();
         }
         return totalPrice;
     }
 }
-
 
 

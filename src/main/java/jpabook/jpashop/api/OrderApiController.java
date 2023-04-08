@@ -43,6 +43,7 @@ public class OrderApiController {
                 .collect(toList());
         return result;
     }
+
     @GetMapping("/api/v3/orders")
     public List<OrderDto> ordersV3() {
         List<Order> orders = orderRepository.findAllWithItem();
